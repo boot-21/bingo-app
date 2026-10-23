@@ -1,276 +1,170 @@
-<!DOCTYPE html>
+
+        .<!DOCTYPE html>
 <html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beteseb Bingo Dashboard</title>
+    <title>Beteseb Bingo</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { box-sizing: border-box; font-family: Arial, sans-serif; }
-        body {
-            background-color: #12102e;
-            color: white;
-            margin: 0;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+        * { box-sizing: border-box; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #110d2b; color: white; display: flex; flex-direction: column; min-height: 100vh; padding: 8px; }
         
-        /* Header Stats Bar */
-        .header-stats {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            margin-bottom: 8px;
-        }
-        .stat-box {
-            background: #251f4f;
-            border-radius: 6px;
-            padding: 4px 2px;
-            text-align: center;
-        }
-        .stat-label { font-size: 10px; color: #a29bfe; font-weight: bold; }
-        .stat-value { font-size: 12px; font-weight: bold; color: #ffffff; }
-
-        /* Main Container */
-        .main-container {
-            display: flex;
-            gap: 8px;
-            flex: 1;
-        }
-
-        /* Left Side: 1-75 Grid Board */
-        .board-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 2px;
-            width: 50%;
-            background: #1a1638;
-            padding: 4px;
-            border-radius: 8px;
-        }
-        .col-header {
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            padding: 4px 0;
-            border-radius: 4px;
-        }
-        .header-B { background: #2980b9; }
-        .header-I { background: #8e44ad; }
-        .header-N { background: #9b59b6; }
-        .header-G { background: #27ae60; }
-        .header-O { background: #e67e22; }
-
-        .num-cell {
-            background: #2b255a;
-            color: #d1d8e0;
-            font-size: 11px;
-            font-weight: bold;
-            text-align: center;
-            padding: 4px 0;
-            border-radius: 3px;
-        }
-        .num-cell.active {
-            background: #2ecc71;
-            color: white;
-            box-shadow: 0 0 5px #2ecc71;
-        }
-
-        /* Right Side: Display & Watch Area */
-        .right-panel {
-            width: 50%;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .called-display {
-            background: #1a1638;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100px;
-        }
-        .big-ball {
-            width: 70px;
-            height: 70px;
-            background: radial-gradient(circle at 30% 30%, #f1c40f, #f39c12);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #2c3e50;
-            font-size: 22px;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-        }
-
-        .watch-box {
-            background: #1a1638;
-            border-radius: 8px;
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .watch-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-        .watch-desc { font-size: 12px; color: #a29bfe; line-height: 1.5; }
-
-        /* Bottom Control Buttons */
-        .bottom-controls {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        .btn-bottom {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .btn-leave { background: #e74c3c; }
-        .btn-refresh { background: #7f8c8d; }
-        .btn-auto { background: #d35400; }
         .hidden { display: none !important; }
+
+        /* 1. የካርቴላ መምረጫ ስክሪን (SELECTION SCREEN) */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .top-btn { background: #3b2a75; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .wallet-bar { display: flex; gap: 4px; flex: 1; margin: 0 8px; }
+        .wallet-box { background: #221a4f; border-radius: 6px; padding: 4px; text-align: center; flex: 1; font-size: 10px; }
+        .wallet-val { font-size: 12px; font-weight: bold; }
+        .timer-box { background: #f39c12; color: black; font-weight: bold; padding: 6px 10px; border-radius: 6px; font-size: 14px; }
+
+        .cartela-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 10px; }
+        .cartela-btn { background: #d35400; color: white; border: none; padding: 10px 0; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        .cartela-btn.selected { background: #2ecc71; }
+
+        /* 2. የቀጥታ ጨዋታ ስክሪን (LIVE GAME DASHBOARD) */
+        .header-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 8px; }
+        .stat-box { background: #251f4f; border-radius: 6px; padding: 4px 2px; text-align: center; }
+        .stat-label { font-size: 10px; color: #a29bfe; font-weight: bold; }
+        .stat-value { font-size: 12px; font-weight: bold; }
+
+        .main-container { display: flex; gap: 8px; flex: 1; }
+        .board-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 50%; background: #1a1638; padding: 4px; border-radius: 8px; }
+        .col-header { text-align: center; font-weight: bold; font-size: 14px; padding: 4px 0; border-radius: 4px; }
+        .header-B { background: #2980b9; } .header-I { background: #8e44ad; } .header-N { background: #9b59b6; } .header-G { background: #27ae60; } .header-O { background: #e67e22; }
+
+        .num-cell { background: #2b255a; color: #d1d8e0; font-size: 11px; font-weight: bold; text-align: center; padding: 4px 0; border-radius: 3px; }
+        .num-cell.active { background: #2ecc71; color: white; box-shadow: 0 0 5px #2ecc71; }
+
+        .right-panel { width: 50%; display: flex; flex-direction: column; gap: 8px; }
+        .called-display { background: #1a1638; border-radius: 8px; padding: 15px; text-align: center; display: flex; justify-content: center; align-items: center; }
+        .big-ball { width: 65px; height: 65px; background: radial-gradient(circle at 30% 30%, #f1c40f, #f39c12); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #2c3e50; font-size: 20px; font-weight: bold; }
+
+        .watch-box { background: #1a1638; border-radius: 8px; flex: 1; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .watch-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .watch-desc { font-size: 12px; color: #a29bfe; line-height: 1.4; }
+
+        /* 3. የአሸናፊነት ማስታወቂያ (WINNER POPUP) */
+        .popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .popup-card { background: #202738; width: 85%; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #34495e; }
+        .winner-title { color: #f1c40f; font-size: 22px; font-weight: bold; margin-top: 5px; }
+        .winner-name { font-size: 18px; margin: 8px 0; font-weight: bold; }
+
+        .bottom-controls { display: flex; gap: 6px; margin-top: 8px; }
+        .btn-bottom { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-leave { background: #e74c3c; } .btn-refresh { background: #7f8c8d; }
     </style>
 </head>
 <body>
 
-    <!-- Header Stats -->
-    <div class="header-stats">
-        <div class="stat-box"><div class="stat-label">Game ID</div><div class="stat-value" id="gameId">BBCA697K</div></div>
-        <div class="stat-box"><div class="stat-label">Players</div><div class="stat-value" id="playerCount">405</div></div>
-        <div class="stat-box"><div class="stat-label">Bet</div><div class="stat-value">10</div></div>
-        <div class="stat-box"><div class="stat-label">Derash</div><div class="stat-value">3240</div></div>
-        <div class="stat-box"><div class="stat-label">Called</div><div class="stat-value" id="calledCount">0</div></div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="main-container">
-        
-        <!-- Left 1-75 Grid Board -->
-        <div class="board-grid" id="boardGrid">
-            <div class="col-header header-B">B</div>
-            <div class="col-header header-I">I</div>
-            <div class="col-header header-N">N</div>
-            <div class="col-header header-G">G</div>
-            <div class="col-header header-O">O</div>
+    <!-- ደረጃ 1፦ የካርቴላ መምረጫ ገጽ -->
+    <div id="selectionScreen">
+        <div class="top-bar">
+            <button class="top-btn">← Back</button>
+            <div class="wallet-bar">
+                <div class="wallet-box">Main<div class="wallet-val">0</div></div>
+                <div class="wallet-box">Play<div class="wallet-val">0</div></div>
+                <div class="wallet-box">Stake<div class="wallet-val">10</div></div>
+            </div>
+            <div class="timer-box" id="countdownTimer">10 s</div>
         </div>
 
-        <!-- Right Panel -->
-        <div class="right-panel">
-            <div class="called-display">
-                <div class="big-ball" id="currentBall">--</div>
+        <div class="cartela-grid" id="cartelaGrid"></div>
+    </div>
+
+    <!-- ደረጃ 2፦ የቀጥታ ጨዋታ ገጽ (ተጫዋቾች ለዕይታ ብቻ የሚጠቀሙት) -->
+    <div id="gameScreen" class="hidden">
+        <div class="header-stats">
+            <div class="stat-box"><div class="stat-label">Game ID</div><div class="stat-value">BBXFM5WQ</div></div>
+            <div class="stat-box"><div class="stat-label">Players</div><div class="stat-value">476</div></div>
+            <div class="stat-box"><div class="stat-label">Bet</div><div class="stat-value">10</div></div>
+            <div class="stat-box"><div class="stat-label">Derash</div><div class="stat-value">3808</div></div>
+            <div class="stat-box"><div class="stat-label">Called</div><div class="stat-value" id="calledCount">0</div></div>
+        </div>
+
+        <div class="main-container">
+            <div class="board-grid" id="boardGrid">
+                <div class="col-header header-B">B</div>
+                <div class="col-header header-I">I</div>
+                <div class="col-header header-N">N</div>
+                <div class="col-header header-G">G</div>
+                <div class="col-header header-O">O</div>
             </div>
 
-            <div class="watch-box">
-                <div class="watch-title" id="modeTitle">Watching Only</div>
-                <div class="watch-desc" id="modeDesc">
-                    የዚህ ዙር ጨዋታ ተጀምሯል:: አዲስ ዙር እስኪጀምር እዚህ ይጠበቁ::
+            <div class="right-panel">
+                <div class="called-display">
+                    <div class="big-ball" id="currentBall">--</div>
+                </div>
+                <div class="watch-box">
+                    <div class="watch-title">Watching Only</div>
+                    <div class="watch-desc">የዚህ ዙር ጨዋታ ተጀምሯል:: አዲስ ዙር እስኪጀምር እዚህ ይጠበቁ::</div>
                 </div>
             </div>
         </div>
+
+        <div class="bottom-controls">
+            <button class="btn-bottom btn-leave" onclick="location.reload()">Leave</button>
+            <button class="btn-bottom btn-refresh" onclick="location.reload()">Refresh</button>
+        </div>
     </div>
 
-    <!-- Bottom Buttons -->
-    <div class="bottom-controls">
-        <button class="btn-bottom btn-leave" onclick="location.reload()">Leave</button>
-        <button class="btn-bottom btn-refresh" onclick="location.reload()">Refresh</button>
-        <!-- ይህ ቁልፍ ለአስተዳዳሪው ብቻ ነው የሚታየው -->
-        <button class="btn-bottom btn-auto hidden" id="adminAutoBtn" onclick="toggleAutoCall()">Automatic</button>
+    <!-- ደረጃ 3፦ የአሸናፊነት ማስታወቂያ ፖፕ-አፕ -->
+    <div id="winnerPopup" class="popup-overlay hidden">
+        <div class="popup-card">
+            <div style="font-size: 30px;">👑</div>
+            <div class="winner-title">BINGO!</div>
+            <div class="winner-name">🎉 <span id="winUser">zadicus</span> WON! 🎉</div>
+            <p style="font-size: 13px; color: #bdc3c7;">Winning Cartela : <b id="winCartela">218</b></p>
+            <br>
+            <div style="background: #110d2b; padding: 10px; border-radius: 6px; font-size: 12px; color: #f39c12;">
+                Auto-starting next game in <span id="popupTimer">5</span>s
+            </div>
+        </div>
     </div>
 
     <script>
-        let calledNumbers = [];
-        let autoInterval = null;
-
-        // የ ቴሌግራም ተጠቃሚ መረጃ ማረጋገጫ (አድሚኑን ለመለየት)
-        let tg = window.Telegram ? window.Telegram.WebApp : null;
-        let isAdmin = false;
-
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            // የርሶን የቴሌግራም User ID እዚህ ማረጋገጥ እንችላለን
-            // ለጊዜው አድሚን መሆንዎን በURL መለየት እንዲቻል ተደርጓል
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('admin') === 'true') {
-                isAdmin = true;
-            }
+        // የካርቴላ ቁልፎችን (ከ 1 እስከ 96) ማዘጋጀት
+        const cartelaGrid = document.getElementById('cartelaGrid');
+        for (let i = 1; i <= 96; i++) {
+            let btn = document.createElement('button');
+            btn.className = 'cartela-btn';
+            btn.innerText = i;
+            btn.onclick = () => {
+                document.querySelectorAll('.cartela-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            cartelaGrid.appendChild(btn);
         }
 
-        // ቦርዱን 1-75 ማዘጋጀት
-        function generateBoard() {
-            const grid = document.getElementById('boardGrid');
-            for (let row = 0; row < 15; row++) {
-                for (let col = 0; col < 5; col++) {
-                    let num = row + 1 + (col * 15);
-                    let cell = document.createElement('div');
-                    cell.className = 'num-cell';
-                    cell.id = 'cell-' + num;
-                    cell.innerText = num;
-                    grid.appendChild(cell);
-                }
+        // የሰዓት ቆጠራ (Count Down) - ሰዓቱ ሲያልቅ ወደ ጨዋታው ሰሌዳ ይቀየራል
+        let timeLeft = 10;
+        let timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById('countdownTimer').innerText = timeLeft + " s";
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('selectionScreen').classList.add('hidden');
+                document.getElementById('gameScreen').classList.remove('hidden');
             }
+        }, 1000);
 
-            // አድሚን ከሆኑ ቁልፉ እንዲታይ ማድረግ
-            if (isAdmin) {
-                document.getElementById('adminAutoBtn').classList.remove('hidden');
-                document.getElementById('modeTitle').innerText = "Admin Control";
-                document.getElementById('modeDesc').innerText = "እርስዎ አስተዳዳሪ ነዎት:: ቁጥሮቹን ለመጥራት Automatic የሚለውን ይጫኑ::";
-            }
-        }
-
-        // ቁጥር መጥራት
-        function drawNumber() {
-            if (calledNumbers.length >= 75) {
-                if (autoInterval) clearInterval(autoInterval);
-                return;
-            }
-            let nextNum;
-            do {
-                nextNum = Math.floor(Math.random() * 75) + 1;
-            } while (calledNumbers.includes(nextNum));
-
-            calledNumbers.push(nextNum);
-            
-            // በቦርዱ ላይ ማብራት
-            let cell = document.getElementById('cell-' + nextNum);
-            if (cell) cell.classList.add('active');
-
-            // ፊደል መስጠት
-            let letter = "B";
-            if (nextNum > 15) letter = "I";
-            if (nextNum > 30) letter = "N";
-            if (nextNum > 45) letter = "G";
-            if (nextNum > 60) letter = "O";
-
-            document.getElementById('currentBall').innerText = letter + "-" + nextNum;
-            document.getElementById('calledCount').innerText = calledNumbers.length;
-        }
-
-        function toggleAutoCall() {
-            if (!isAdmin) return; // ተጫዋች ከሆነ አይሰራም
-            
-            if (autoInterval) {
-                clearInterval(autoInterval);
-                autoInterval = null;
-            } else {
-                autoInterval = setInterval(drawNumber, 3000);
+        // የ 1-75 B-I-N-G-O ሰሌዳ ማዘጋጀት
+        const boardGrid = document.getElementById('boardGrid');
+        for (let row = 0; row < 15; row++) {
+            for (let col = 0; col < 5; col++) {
+                let num = row + 1 + (col * 15);
+                let cell = document.createElement('div');
+                cell.className = 'num-cell';
+                cell.id = 'cell-' + num;
+                cell.innerText = num;
+                boardGrid.appendChild(cell);
             }
         }
-
-        generateBoard();
     </script>
 </body>
 </html>
+
+            
+            
