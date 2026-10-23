@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethiopian Bingo 600 Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary: #2481cc;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --accent: #22c55e;
+            --danger: #ef4444;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+        h1 { font-size: 1.4rem; text-align: center; margin-bottom: 10px; color: #38bdf8; }
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 1rem;
+        }
+        .btn-accent { background: var(--accent); }
+        .btn-danger { background: var(--danger); }
+        .section { margin-bottom: 15px; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .bingo-header {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 0;
+            border-radius: 4px;
+        }
+        .bingo-cell {
+            background: #334155;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .bingo-cell.marked {
+            background: var(--accent);
+            color: white;
+        }
+        .bingo-cell.free {
+            background: #f59e0b;
+            color: black;
+            font-size: 0.8rem;
+        }
+        .caller-display {
+            background: #0284c7;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .flex-row { display: flex; gap: 8px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Bingo 600 Telegram App</h1>
+        
+        <div id="nav-menu" class="section">
+            <button class="btn" onclick="showScreen('player-screen')">👤 ተጫዋች (Player)</button>
+            <button class="btn btn-accent" onclick="showScreen('admin-screen')">👑 አስተዳዳሪ (Admin Caller)</button>
+        </div>
+
+        <div id="player-screen" class="section hidden">
+            <h3>የካርቴላ ምርጫ (1 - 600)</h3>
+            <label>የካርቴላ ቁጥር ያስገቡ:</label>
+            <div class="flex-row">
+                <input type="number" id="cartela-input" min="1" max="600" value="1">
+                <button class="btn" style="margin-top:5px; width:100px;" onclick="loadCartela()">ጫን</button>
+            </div>
+            <div id="cartela-title" style="text-align:center; margin:10px 0; font-weight:bold; color:#38bdf8;"></div>
+            <div id="bingo-board" class="bingo-grid"></div>
+            <button class="btn btn-danger" style="margin-top:15px;" onclick="checkBingo()">🎉 BINGO አረጋግጥ!</button>
+            <button class="btn" style="background:#475569; margin-top:5px;" onclick="showScreen('nav-menu')">↩️ ተመለስ</button>
+        </div>
+
+        <div id="admin-screen" class="section hidden">
+            <h3>Admin Caller Panel</h3>
+            <div class="caller-display" id="current-call">--</div>
+            <div class="flex-row">
+                <button class="btn btn-accent" onclick="startAutoCall()">▶ Start Auto</button>
+                <button class="btn btn-danger" onclick="stopAutoCall()">⏸ Pause</button>
+            </div>
+            <button class="btn" style="margin-top:8px;" onclick="callNextNumber()">⚡ Next Number</button>
+            <button class="btn" style="background:#475569; margin-top:8px;" onclick="showScreen('nav-menu')">↩️ ተመለስ</button>
+            
+            <h4 style="margin-top:15px;">የተጠሩ ቁጥሮች:</h4>
+            <div id="called-list" style="font-size:0.9rem; color:#94a3b8; max-height:100px; overflow-y:auto; background:#0f172a; padding:8px; border-radius:6px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let calledNumbers = [];
+        let autoCallTimer = null;
+        let currentCardData = [];
+
+        function showScreen(screenId) {
+            document.getElementById('nav-menu').classList.add('hidden');
+            document.getElementById('player-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function generateCartela(id) {
+            let seed = id * 997;
+            function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+            function getCol(min, max) {
+                let nums = [];
+                while(nums.length < 5) {
+                    let n = Math.floor(rnd() * (max - min + 1)) + min;
+                    if(!nums.includes(n)) nums.push(n);
+                }
+                return nums;
+            }
+            let b = getCol(1, 15), i = getCol(16, 30), n = getCol(31, 45), g = getCol(46, 60), o = getCol(61, 75);
+            n[2] = "FREE";
+            let card = [];
+            for(let r=0; r<5; r++) card.push([b[r], i[r], n[r], g[r], o[r]]);
+            return card;
+        }
+
+        function loadCartela() {
+            let id = parseInt(document.getElementById('cartela-input').value);
+            if(isNaN(id) || id < 1 || id > 600) { alert("ከ 1 እስከ 600 ቁጥር ያስገቡ!"); return; }
+            currentCardData = generateCartela(id);
+            document.getElementById('cartela-title').innerText = `ካርቴላ ቁጥር #${id}`;
+            let boardHtml = '';
+            ['B', 'I', 'N', 'G', 'O'].forEach(h => boardHtml += `<div class="bingo-header">${h}</div>`);
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<5; c++) {
+                    let val = currentCardData[r][c];
+                    let isFree = (val === "FREE");
+                    boardHtml += `<div class="bingo-cell ${isFree ? 'free marked' : ''}" onclick="toggleCell(this, ${r}, ${c})">${val}</div>`;
+                }
+            }
+            document.getElementById('bingo-board').innerHTML = boardHtml;
+        }
+
+        function toggleCell(el, r, c) {
+            if(currentCardData[r][c] === "FREE") return;
+            el.classList.toggle('marked');
+        }
+
+        function callNextNumber() {
+            if(calledNumbers.length >= 75) { alert("ሁሉም 75 ቁጥሮች ተጠርተዋል!"); return; }
+            let available = [];
+            for(let i=1; i<=75; i++) if(!calledNumbers.includes(i)) available.push(i);
+            let next = available[Math.floor(Math.random() * available.length)];
+            calledNumbers.push(next);
+            let letter = next <= 15 ? 'B' : next <= 30 ? 'I' : next <= 45 ? 'N' : next <= 60 ? 'G' : 'O';
+            document.getElementById('current-call').innerText = `${letter}-${next}`;
+            document.getElementById('called-list').innerText = calledNumbers.join(', ');
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${letter} ${next}`));
+            }
+        }
+
+        function startAutoCall() {
+            if(autoCallTimer) return;
+            autoCallTimer = setInterval(() => {
+                if(calledNumbers.length >= 75) { stopAutoCall(); return; }
+                callNextNumber();
+            }, 5000);
+        }
+
+        function stopAutoCall() { clearInterval(autoCallTimer); autoCallTimer = null; }
+        function checkBingo() { alert("🎉 እንኳን ደስ አለዎት! BINGO ማረጋገጫ ተሳክቷል!"); }
+
+        window.onload = () => { loadCartela(); };
+    </script>
+</body>
+</html>
