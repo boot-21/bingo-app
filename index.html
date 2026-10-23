@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bingo 600 Telegram App</title>
+    <title>Fully Automated Bingo 600</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -11,11 +12,11 @@
             background-color: #121824;
             color: white;
             text-align: center;
-            padding: 15px;
+            padding: 10px;
             margin: 0;
         }
-        h1 { color: #38ef7d; font-size: 22px; }
-        .btn-mode {
+        h1 { color: #38ef7d; font-size: 20px; margin: 10px 0; }
+        .btn {
             background-color: #0088cc;
             color: white;
             padding: 12px 20px;
@@ -23,58 +24,103 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin: 8px;
-            width: 80%;
+            margin: 6px;
+            width: 85%;
             font-weight: bold;
         }
         .btn-admin { background-color: #27ae60; }
-        .btn-action { background-color: #f39c12; margin-top: 10px; }
+        .btn-action { background-color: #f39c12; }
         .hidden { display: none; }
-        .card-number {
-            font-size: 28px;
-            font-weight: bold;
-            color: #f1c40f;
-            margin: 15px 0;
-        }
+        
+        /* Called Number Box (Admin) */
         .called-box {
-            font-size: 40px;
+            font-size: 35px;
             font-weight: bold;
             color: #e74c3c;
             background: #2c3e50;
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
             display: inline-block;
-            min-width: 100px;
+            min-width: 90px;
             margin: 10px 0;
+        }
+
+        /* Bingo Card Grid (Player) */
+        .bingo-card {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            max-width: 320px;
+            margin: 15px auto;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cell {
+            background: #334155;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            border: 1px solid #475569;
+        }
+        .cell.marked {
+            background: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        .cell.free {
+            background: #f1c40f;
+            color: #121824;
+            font-size: 14px;
+        }
+        .win-message {
+            font-size: 24px;
+            color: #2ecc71;
+            font-weight: bold;
+            margin: 15px 0;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
         }
     </style>
 </head>
 <body>
 
-    <h1>🎰 Bingo 600 Telegram App</h1>
+    <h1>🎰 ሙሉ አውቶማቲክ ቢንጎ 600</h1>
 
     <!-- Mode Selection Screen -->
     <div id="modeSelection">
-        <button class="btn-mode" onclick="showPlayerScreen()">👤 ተጫዋች (Player)</button><br>
-        <button class="btn-mode btn-admin" onclick="showAdminScreen()">👑 አስተዳዳሪ (Admin Caller)</button>
+        <button class="btn" onclick="showPlayerScreen()">👤 ተጫዋች (Player)</button><br>
+        <button class="btn btn-admin" onclick="showAdminScreen()">👑 አስተዳዳሪ (Admin Caller)</button>
     </div>
 
     <!-- Player Screen -->
     <div id="playerScreen" class="hidden">
         <h2>👤 የተጫዋች ገጽ</h2>
-        <button class="btn-mode btn-action" onclick="autoSelectCard()">🎲 በራሱ ካርቴላ ይምረጡ (Auto Select)</button>
-        <div id="selectedCardInfo" class="card-number">ምንም ካርቴላ አልተመረጠም</div>
-        <button class="btn-mode" onclick="goBack()">⬅️ ተመለስ</button>
+        <button class="btn btn-action" onclick="autoSelectCard()">🎲 በራሱ ካርቴላ ይምረጡ (Auto Select)</button>
+        <div id="cardInfo" style="font-size: 16px; color: #f1c40f; margin: 5px;">ካርቴላ አልተመረጠም</div>
+        
+        <div id="bingoCardContainer"></div>
+        <div id="winAlert"></div>
+
+        <button class="btn" onclick="goBack()">⬅️ ተመለስ</button>
     </div>
 
     <!-- Admin Screen -->
     <div id="adminScreen" class="hidden">
         <h2>👑 የአስተዳዳሪ ገጽ</h2>
         <div class="called-box" id="currentNumber">--</div><br>
-        <button class="btn-mode btn-admin" onclick="drawNextNumber()">▶️ ቀጣይ ቁጥር ጥራ</button><br>
-        <button class="btn-mode btn-action" id="autoBtn" onclick="toggleAutoCall()">⚡ በራሱ እንዲጠራ አስጀምር (Auto Call)</button><br>
-        <button class="btn-mode" onclick="resetGame()">🔄 ጨዋታውን አድስ (Reset)</button><br>
-        <button class="btn-mode" onclick="goBack()">⬅️ ተመለስ</button>
+        <button class="btn btn-admin" onclick="drawNextNumber()">▶️ ቀጣይ ቁጥር ጥራ</button><br>
+        <button class="btn btn-action" id="autoBtn" onclick="toggleAutoCall()">⚡ በራሱ እንዲጠራ አስጀምር (Auto Call)</button><br>
+        <button class="btn" onclick="resetGame()">🔄 ጨዋታውን አድስ (Reset)</button><br>
+        <button class="btn" onclick="goBack()">⬅️ ተመለስ</button>
     </div>
 
     <script>
@@ -83,6 +129,7 @@
 
         let calledNumbers = [];
         let autoInterval = null;
+        let currentCardGrid = [];
 
         function showPlayerScreen() {
             document.getElementById('modeSelection').classList.add('hidden');
@@ -101,13 +148,56 @@
             document.getElementById('modeSelection').classList.remove('hidden');
         }
 
-        // 1. በራሱ ካርቴላ ለመምረጥ (Auto-Select Card)
+        // 1. ተጫዋቹ በራሱ ካርቴላ መምረጥ እና 5x5 ፕላትፎርም ማመንጨት
         function autoSelectCard() {
             const randomCardId = Math.floor(Math.random() * 600) + 1;
-            document.getElementById('selectedCardInfo').innerText = "የተመረጠው ካርቴላ ቁጥር፦ #" + randomCardId;
+            document.getElementById('cardInfo').innerText = "የተመረጠው ካርቴላ ቁጥር፦ #" + randomCardId;
+            
+            // የ 5x5 ካርቴላ ቁጥሮችን በዘፈቀደ ማመንጨት (ለቢንጎ 75 ቁጥሮች ውስጥ)
+            currentCardGrid = [];
+            let availableNums = Array.from({length: 75}, (_, i) => i + 1);
+            
+            // Shuffle
+            for (let i = availableNums.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [availableNums[i], availableNums[j]] = [availableNums[j], availableNums[i]];
+            }
+
+            for (let i = 0; i < 25; i++) {
+                if (i === 12) {
+                    currentCardGrid.push("FREE"); // መካከለኛው ነፃ ቦታ
+                } else {
+                    currentCardGrid.push(availableNums.pop());
+                }
+            }
+
+            renderCard();
         }
 
-        // 2. ቁጥር መጥራት
+        // ካርቴላውን በስክሪኑ ላይ መሳል
+        function renderCard() {
+            let container = document.getElementById('bingoCardContainer');
+            container.innerHTML = '<div class="bingo-card" id="gridGrid"></div>';
+            let gridDiv = document.getElementById('gridGrid');
+
+            currentCardGrid.forEach((num, index) => {
+                let cell = document.div || document.createElement('div');
+                cell.className = "cell";
+                if (num === "FREE") {
+                    cell.classList.add('free', 'marked');
+                    cell.innerText = "FREE";
+                } else {
+                    cell.innerText = num;
+                    if (calledNumbers.includes(num)) {
+                        cell.classList.add('marked');
+                    }
+                }
+                gridDiv.appendChild(cell);
+            });
+            checkWinCondition();
+        }
+
+        // 2. አስተዳዳሪው ቁጥር መጥራት
         function drawNextNumber() {
             if (calledNumbers.length >= 75) {
                 alert("ሁሉም ቁጥሮች ተጠርተው አልቀዋል!");
@@ -121,15 +211,18 @@
 
             calledNumbers.push(nextNum);
             document.getElementById('currentNumber').innerText = nextNum;
+
+            // በየሰከንዱ የተጠራውን ቁጥር በፕሌየር ስክሪን ላይ ለማዘመን
+            renderCard();
         }
 
-        // 3. በራሱ ቁጥር እንዲጠራ ማድረግ (Auto Call)
+        // 3. በራሱ በየ 3 ሰከንዱ ቁጥር መጥራት (Auto Call)
         function toggleAutoCall() {
             if (autoInterval) {
                 stopAutoCall();
             } else {
-                autoInterval = setInterval(drawNextNumber, 3000); // በየ 3 ሰከንዱ ይጥራል
-                document.getElementById('autoBtn').innerText = "⏸️ በራሱ መጥራቱን አቁም";
+                autoInterval = setInterval(drawNextNumber, 3000);
+                document.getElementById('autoBtn').innerText = "⏸️ ማቆም (Stop Auto)";
                 document.getElementById('autoBtn').style.backgroundColor = "#e74c3c";
             }
         }
@@ -143,10 +236,37 @@
             }
         }
 
+        // 4. አውቶማቲክ የቢንጎ ማሸነፍ ማረጋገጫ (Check Win)
+        function checkWinCondition() {
+            if (currentCardGrid.length === 0) return;
+
+            let marked = currentCardGrid.map((num, idx) => idx === 12 || calledNumbers.includes(num));
+            let won = false;
+
+            // ረድፎች (Rows) እና  നിരዎች (Cols) ማረጋገጥ
+            for (let i = 0; i < 5; i++) {
+                // Row check
+                if (marked[i*5] && marked[i*5+1] && marked[i*5+2] && marked[i*5+3] && marked[i*5+4]) won = true;
+                // Col check
+                if (marked[i] && marked[i+5] && marked[i+10] && marked[i+15] && marked[i+20]) won = true;
+            }
+
+            let winAlert = document.getElementById('winAlert');
+            if (won) {
+                winAlert.innerHTML = '<div class="win-message">🎉 BINGO! አሸንፈዋል! 🎉</div>';
+            } else {
+                winAlert.innerHTML = '';
+            }
+        }
+
         function resetGame() {
             stopAutoCall();
             calledNumbers = [];
+            currentCardGrid = [];
             document.getElementById('currentNumber').innerText = "--";
+            document.getElementById('cardInfo').innerText = "ካርቴላ አልተመረጠም";
+            document.getElementById('bingoCardContainer').innerHTML = "";
+            document.getElementById('winAlert').innerHTML = "";
             alert("ጨዋታው ታድሷል!");
         }
     </script>
