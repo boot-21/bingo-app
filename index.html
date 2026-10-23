@@ -143,6 +143,7 @@
         .btn-leave { background: #e74c3c; }
         .btn-refresh { background: #7f8c8d; }
         .btn-auto { background: #d35400; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -175,8 +176,8 @@
             </div>
 
             <div class="watch-box">
-                <div class="watch-title">Watching Only</div>
-                <div class="watch-desc">
+                <div class="watch-title" id="modeTitle">Watching Only</div>
+                <div class="watch-desc" id="modeDesc">
                     የዚህ ዙር ጨዋታ ተጀምሯል:: አዲስ ዙር እስኪጀምር እዚህ ይጠበቁ::
                 </div>
             </div>
@@ -187,14 +188,28 @@
     <div class="bottom-controls">
         <button class="btn-bottom btn-leave" onclick="location.reload()">Leave</button>
         <button class="btn-bottom btn-refresh" onclick="location.reload()">Refresh</button>
-        <button class="btn-bottom btn-auto" onclick="toggleAutoCall()">Automatic</button>
+        <!-- ይህ ቁልፍ ለአስተዳዳሪው ብቻ ነው የሚታየው -->
+        <button class="btn-bottom btn-auto hidden" id="adminAutoBtn" onclick="toggleAutoCall()">Automatic</button>
     </div>
 
     <script>
         let calledNumbers = [];
         let autoInterval = null;
 
-        // Generate Board 1 to 75 arranged by columns B-I-N-G-O
+        // የ ቴሌግራም ተጠቃሚ መረጃ ማረጋገጫ (አድሚኑን ለመለየት)
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
+        let isAdmin = false;
+
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            // የርሶን የቴሌግራም User ID እዚህ ማረጋገጥ እንችላለን
+            // ለጊዜው አድሚን መሆንዎን በURL መለየት እንዲቻል ተደርጓል
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('admin') === 'true') {
+                isAdmin = true;
+            }
+        }
+
+        // ቦርዱን 1-75 ማዘጋጀት
         function generateBoard() {
             const grid = document.getElementById('boardGrid');
             for (let row = 0; row < 15; row++) {
@@ -207,9 +222,16 @@
                     grid.appendChild(cell);
                 }
             }
+
+            // አድሚን ከሆኑ ቁልፉ እንዲታይ ማድረግ
+            if (isAdmin) {
+                document.getElementById('adminAutoBtn').classList.remove('hidden');
+                document.getElementById('modeTitle').innerText = "Admin Control";
+                document.getElementById('modeDesc').innerText = "እርስዎ አስተዳዳሪ ነዎት:: ቁጥሮቹን ለመጥራት Automatic የሚለውን ይጫኑ::";
+            }
         }
 
-        // Call Next Number
+        // ቁጥር መጥራት
         function drawNumber() {
             if (calledNumbers.length >= 75) {
                 if (autoInterval) clearInterval(autoInterval);
@@ -222,11 +244,11 @@
 
             calledNumbers.push(nextNum);
             
-            // Highlight on Board
+            // በቦርዱ ላይ ማብራት
             let cell = document.getElementById('cell-' + nextNum);
             if (cell) cell.classList.add('active');
 
-            // Set Ball Letter
+            // ፊደል መስጠት
             let letter = "B";
             if (nextNum > 15) letter = "I";
             if (nextNum > 30) letter = "N";
@@ -238,6 +260,8 @@
         }
 
         function toggleAutoCall() {
+            if (!isAdmin) return; // ተጫዋች ከሆነ አይሰራም
+            
             if (autoInterval) {
                 clearInterval(autoInterval);
                 autoInterval = null;
